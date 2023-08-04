@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using UnityEngine;
 
+
 public class  EnemyController: MonoBehaviour
 {
 
@@ -12,45 +13,93 @@ public class  EnemyController: MonoBehaviour
 
     private Vector3 target;
 
-    private Rigidbody rb;
-
-    [SerializeField] private float speed = 1;
+    [SerializeField] public float speed = 1;
 
     private List<GameObject> points;
 
     private int random;
 
+    [SerializeField] private Transform crab;
 
-    void Start()
+    [SerializeField] private GameObject enemySuccess;
+
+    
+    
+    void Awake()
     {
+        
+        hole = GameObject.Find("hole").GetComponent<Transform>();
+
+    }
+
+    private void OnEnable()
+    {
+        //assing points to move
         GameObject[] arrayPoint = GameObject.FindGameObjectsWithTag("point");
 
         points = arrayPoint.ToList();
 
-        hole = GameObject.Find("hole").GetComponent<Transform>();
-
-        rb = gameObject.GetComponent<Rigidbody>();
-
+        //chose a point and to move at
         random = UnityEngine.Random.Range(0, points.Count);
 
         target = (points[random].transform.position - transform.position).normalized;
 
+        crab.LookAt(points[random].transform.position - transform.position, Vector3.up);
+
+        ChangueSpeed();
+    }
+
+    void Update()
+    {
+        //move to the point
+        transform.Translate(target * speed * Time.deltaTime);
+
+
+        //define limits
+        if (transform.position.x < -50)
+        {
+            gameObject.SetActive(false);
+        }
+        if (transform.position.x > 50)
+        {
+           gameObject.SetActive(false);
+        }        
+        if (transform.position.z < -50)
+        {
+            gameObject.SetActive(false);
+        }
+        if (transform.position.z > 50)
+        {
+            gameObject.SetActive(false);
+        }
+
+
         
     }
 
-    
-    void Update()
+    //change speed over time dor add challenge
+    void ChangueSpeed()
     {
-             
-        ///transform.Translate(target * speed * Time.deltaTime);
-
-    }
-
-    void FixedUpdate()
-    {
-    
-        rb.AddForce(target * speed, ForceMode.Impulse);
-
+        if (60 > Time.realtimeSinceStartup)
+        {
+            speed = 4;
+        }
+        else if (120 > Time.realtimeSinceStartup)
+        {
+            speed = 6;
+        }
+        else if (180 > Time.realtimeSinceStartup)
+        {
+            speed = 8;
+        }
+        else if (240 > Time.realtimeSinceStartup)
+        {
+            speed = 10;
+        }
+        else if (300 > Time.realtimeSinceStartup)
+        {
+            speed = 11;
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -65,29 +114,27 @@ public class  EnemyController: MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        //victory of enemy efects
         if (collision.gameObject.CompareTag("Hole"))
-        {
-            Destroy(gameObject);
-        }
-
-        if (collision.gameObject.CompareTag("Wall"))
-        {
-            Destroy(gameObject);
+        {           
+            Instantiate(enemySuccess, collision.GetContact(0).point, Quaternion.identity);
+            gameObject.SetActive(false);
         }
     }
 
+    //remove the last point of move and apoint to another
     void ChangeDirec()
-    {
-        rb.Sleep();
-
+    {      
         points.RemoveAt(random);
 
         if (points.Count != 0)
         {
-
             random = UnityEngine.Random.Range(0, points.Count);
 
             target = (points[random].transform.position - transform.position).normalized;
+
+            crab.LookAt(points[random].transform.position - transform.position, Vector3.up);
+
         }
         else
         {

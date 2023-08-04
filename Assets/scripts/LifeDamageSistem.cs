@@ -1,27 +1,43 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class LifeDamageSistem : MonoBehaviour
 {
-    private Transform father;
+    [SerializeField] private TextMeshProUGUI lives;
+
+    [SerializeField] private int numLives = 5;
+
+
+    [SerializeField] private AudioClip[] soundSuccess;
+
+    [SerializeField] private GameObject screenDefeat;
 
     private void Start()
     {
-        father = transform.parent;
+       lives.text = "lives: " + numLives;
+        Time.timeScale = 1.0f;
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Player"))
+        if (collision.gameObject.CompareTag("Enemy"))
         {
-            Dead();
-        }
-    }
+            //play sound 
+            gameObject.GetComponent<AudioSource>().clip = soundSuccess[Random.Range(0, soundSuccess.Length)];
+            gameObject.GetComponent<AudioSource>().Play();
+            
+            //show lives and review if is defeat
+            numLives--;
+            lives.text = "lives: " + numLives;
+            if (numLives == 0)
+            {
+                Time.timeScale = 0f;
+                screenDefeat.SetActive(true);
+            }
 
-    private void Dead()
-    {
-        Destroy(GameObject.Find(transform.parent.name));
+        }
     }
 
 }

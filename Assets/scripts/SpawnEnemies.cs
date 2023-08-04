@@ -5,12 +5,15 @@ using UnityEngine;
 public class SpawnEnemies : MonoBehaviour
 {
     //limits of intantiate
-    [SerializeField] private Transform rightBorder;
-    [SerializeField] private Transform leftBorder;
-    [SerializeField] private Transform topBorder;
-    [SerializeField] private Transform bottomBorder;
+    [SerializeField] private float x;
+    [SerializeField] private float Z;
+   
 
     [SerializeField] private GameObject enemy;
+
+    [SerializeField] private List<GameObject> enemiesPool;
+
+    [SerializeField] private SceneControl sceneControl;
 
     private Vector3 positionToInstantiate;
 
@@ -18,6 +21,8 @@ public class SpawnEnemies : MonoBehaviour
     {
         Spawn();
         StartCoroutine(TimeSpawn());
+        AddObjectsToPool(5);
+
     }
 
 
@@ -37,12 +42,58 @@ public class SpawnEnemies : MonoBehaviour
 
     void Spawn()
     {
-        float randomX = Random.Range(leftBorder.position.x, rightBorder.position.x);
 
-        float randomz = Random.Range(bottomBorder.position.z, topBorder.position.z);
+        for (int i = 0;i < enemiesPool.Count;i++)
+        {
+            if (!enemiesPool[i].activeSelf)
+            {
+                ActiveEnemy(i);
+                return;
+            }
+        }
 
-        positionToInstantiate = new Vector3(randomX, 0.5f, randomz);
+        AddObjectsToPool(1);
 
-        Instantiate(enemy, positionToInstantiate, Quaternion.identity);
+        ActiveEnemy(enemiesPool.Count - 1);
+
+        return;
+    }
+
+
+    void ActiveEnemy(int i)
+    {
+        float randomX;
+        float randomZ;
+
+        randomX = Random.Range((x / 2) * 1, (x / 2) * -1);
+
+        randomZ = Random.Range((Z / 2) * 1, (Z / 2) * -1);
+
+        positionToInstantiate = new Vector3(randomX, 0.5f, randomZ);
+
+        enemiesPool[i].transform.position = transform.position + positionToInstantiate;
+
+        enemiesPool[i].SetActive(true);
+    }
+
+    //create objects
+    private void AddObjectsToPool(int initialObj)
+    {
+        for (int i = 0;i < initialObj; i++)
+        {
+            GameObject e = Instantiate(enemy,transform);
+            e.SetActive(false);
+            enemiesPool.Add(e);
+
+            sceneControl.soundEfects.Add(e.transform.GetChild(0));
+        }
+
+ 
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireCube(transform.position, new Vector3(x,1,Z));
     }
 }
